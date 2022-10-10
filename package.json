@@ -4,6 +4,7 @@
     "url": "https://github.com/lstatro/titanium/issues"
   },
   "dependencies": {
+    "@elemental-clouds/hydrogen": "^0.0.2",
     "@types/lodash": "^4.14.186",
     "lodash": "^4.17.21"
   },
