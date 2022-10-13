@@ -1,5 +1,8 @@
+export interface ControlAttribute {
+  attributes: { [key: string]: unknown };
+}
+
 export interface Control {
-  $includes?: { attributes: { [key: string]: unknown } }[];
-  $excludes?: { attributes: { [key: string]: unknown } }[];
-  // $excludes?: { [key: string]: unknown }[];
+  $includes?: ControlAttribute[];
+  $excludes?: ControlAttribute[];
 }
