@@ -1,8 +1,4 @@
-export interface ControlAttribute {
-  attributes: { [key: string]: unknown };
-}
-
-export interface Control {
-  $includes?: ControlAttribute[];
-  $excludes?: ControlAttribute[];
-}
+export type Action = '$includes' | '$excludes' | '$if_includes';
+export type Control = { [key in Action]?: ControlMap[] };
+export type ControlMap = { attributes: { [key: string]: unknown } };
+export type ControlProcedure = Control[];
