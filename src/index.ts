@@ -1,33 +1,27 @@
-import { Action, ControlMap, ControlProcedure } from './types/Control';
+import {
+  ComplianceState,
+  ControlProcedure,
+  ControlValidation,
+  EngineConstructor,
+  FinalControlValidationResult,
+} from './types/Control';
+import {
+  conditionalActions,
+  exclusiveActions,
+  inclusiveActions,
+  schema,
+} from './schema';
 
 import Ajv from 'ajv';
 import { CommonInventoryItem } from '@elemental-clouds/hydrogen/Common';
 import assert from 'assert';
 import { isMatch } from 'lodash';
-import { schema } from './schema';
-
-interface EngineConstructor {
-  procedure: ControlProcedure;
-  item: CommonInventoryItem;
-}
-
-interface ControlValidation {
-  action: Action;
-  map: ControlMap;
-  result: boolean;
-}
-
-interface FinalControlValidationResult {
-  nonCompliant: ControlValidation[];
-  item: CommonInventoryItem;
-  result: boolean;
-}
 
 class Engine {
-  procedure: ControlProcedure;
   item: CommonInventoryItem;
-  validations: ControlValidation[] = [];
+  procedure: ControlProcedure;
   status?: FinalControlValidationResult;
+  validations: ControlValidation[] = [];
 
   constructor(args: EngineConstructor) {
     this.procedure = args.procedure;
@@ -43,23 +37,39 @@ class Engine {
   }
 
   compileResult() {
-    let result = false;
-    const nonCompliant = this.validations.filter(
-      validation => validation.result === false
+    let result: ComplianceState = 'COMPLIANT';
+
+    const compliant = this.validations.filter(
+      validation => validation.result === 'COMPLIANT'
     );
-    if (nonCompliant.length === 0) {
-      result = true;
+
+    const nonCompliant = this.validations.filter(
+      validation => validation.result === 'NON_COMPLIANT'
+    );
+
+    const skipped = this.validations.filter(
+      validation => validation.result === 'SKIPPED'
+    );
+
+    if (nonCompliant.length > 0) {
+      result = 'NON_COMPLIANT';
+    }
+
+    if (skipped.length > 0) {
+      result = 'SKIPPED';
     }
 
     this.status = {
-      nonCompliant,
+      compliant,
       item: this.item,
+      nonCompliant,
       result,
+      skipped,
     };
   }
 
   validationProcedure() {
-    for (const control of this.procedure) {
+    procedureLoop: for (const control of this.procedure) {
       /**
        * for each $keyword in the control procedure
        */
@@ -74,25 +84,37 @@ class Engine {
         assert(maps, 'unable to find control mapping');
 
         for (const map of maps) {
-          let result = false;
-
-          if (action === '$includes') {
-            result = isMatch(this.item, map);
-          }
-
-          if (action === '$excludes') {
-            result = !isMatch(this.item, map);
-          }
-
-          this.validations.push({
+          const validation: ControlValidation = {
             action,
             map,
-            result,
-          });
+            result: 'NON_COMPLIANT',
+          };
 
-          if (result === false && action === '$if_includes') {
-            continue;
+          if (inclusiveActions.includes(action)) {
+            if (isMatch(this.item, map)) {
+              validation.result = 'COMPLIANT';
+            }
           }
+
+          if (exclusiveActions.includes(action)) {
+            if (!isMatch(this.item, map)) {
+              validation.result = 'COMPLIANT';
+            }
+          }
+
+          /**
+           * conditional actions that fail should result in a full stop
+           * of the system.
+           */
+          if (validation.result === 'NON_COMPLIANT') {
+            if (conditionalActions.includes(action)) {
+              validation.result = 'SKIPPED';
+              this.validations.push(validation);
+              break procedureLoop;
+            }
+          }
+
+          this.validations.push(validation);
         }
       }
     }
