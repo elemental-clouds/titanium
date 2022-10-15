@@ -99,5 +99,4 @@ describe('#index.ts', () => {
       expect(check.result).toBe('COMPLIANT');
     });
   });
-
 });
