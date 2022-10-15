@@ -120,33 +120,6 @@ class Engine {
     }
   }
 
-  // validateAction(attribute: '$includes' | '$excludes') {
-  //   if (this.control[attribute]) {
-  //     /**
-  //      * validateSyntax validates the structure of object before
-  //      * we make it here, it is safe to assume that the keys exist
-  //      */
-  //     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  //     for (const control of this.control[attribute]!) {
-  //       let result = false;
-
-  //       if (attribute === '$includes') {
-  //         result = isMatch(this.item, control);
-  //       }
-
-  //       if (attribute === '$excludes') {
-  //         result = !isMatch(this.item, control);
-  //       }
-
-  //       this.validations.push({
-  //         attribute,
-  //         control,
-  //         result,
-  //       });
-  //     }
-  //   }
-  // }
-
   validateSyntax() {
     const ajv = new Ajv();
     const validate = ajv.compile(schema);
