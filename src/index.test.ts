@@ -54,27 +54,50 @@ class Test {
 }
 
 describe('#index.ts', () => {
-  it('should return compliant if given an empty check', () => {
-    const item = new Test().generateItem({});
+  describe('#general', () => {
+    it('should return compliant if given an empty check', () => {
+      const item = new Test().generateItem({});
 
-    const check = engine(item, [{}]);
+      const check = engine(item, [{}]);
 
-    expect(check.result).toBe('COMPLIANT');
+      expect(check.result).toBe('COMPLIANT');
+    });
   });
 
-  it('should return compliant if given an exact match', () => {
-    const item = new Test().generateItem({});
+  describe('#includes', () => {
+    it('should return compliant if given an empty check', () => {
+      const item = new Test().generateItem({});
 
-    const check = engine(item, [{ $includes: [item] }]);
+      const check = engine(item, [{ $includes: [] }]);
 
-    expect(check.result).toBe('COMPLIANT');
+      expect(check.result).toBe('COMPLIANT');
+    });
+
+    it('should return compliant if given an exact match', () => {
+      const item = new Test().generateItem({});
+
+      const check = engine(item, [{ $includes: [item] }]);
+
+      expect(check.result).toBe('COMPLIANT');
+    });
+
+    it('should return compliant if given a partial match', () => {
+      const data = new Test().generatePartialMatch();
+
+      const check = engine(data.item, [{ $includes: [data.subset] }]);
+
+      expect(check.result).toBe('COMPLIANT');
+    });
   });
 
-  it('should return compliant if given a partial match', () => {
-    const data = new Test().generatePartialMatch();
+  describe('#excludes', () => {
+    it('should return compliant if given an empty check', () => {
+      const item = new Test().generateItem({});
 
-    const check = engine(data.item, [{ $includes: [data.subset] }]);
+      const check = engine(item, [{ $excludes: [] }]);
 
-    expect(check.result).toBe('COMPLIANT');
+      expect(check.result).toBe('COMPLIANT');
+    });
   });
+
 });
