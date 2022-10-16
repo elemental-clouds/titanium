@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.1] - 2022-10-09
+## [0.0.1] - 2022-10-16
 
 ### Added
 
+- first release of conditional compliance engine
+- support for $includes, $if_includes, $excludes, and $if_excludes
 - pulled in common types from hydrogen
+- branch and logic test coverage
+- initial compliance engine syntax JSON schema definition
+- initial compliance engine types (different then hydrogen)
 
 ## [0.0.0] - 2022-10-09
 
