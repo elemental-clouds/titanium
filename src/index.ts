@@ -61,6 +61,7 @@ class Engine {
 
     this.status = {
       compliant,
+      controlProcedure: this.procedure,
       item: this.item,
       nonCompliant,
       result,
@@ -123,6 +124,7 @@ class Engine {
   validateSyntax() {
     const ajv = new Ajv();
     const validate = ajv.compile(schema);
+
     assert(
       validate(this.procedure),
       new Error(ajv.errorsText(validate.errors))

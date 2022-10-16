@@ -82,7 +82,7 @@
   },
   "keywords": [],
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "index.js",
   "name": "@elemental-clouds/titanium",
   "prettier": {
     "arrowParens": "avoid",

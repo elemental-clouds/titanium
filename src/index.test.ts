@@ -44,6 +44,34 @@ class Test {
     };
   }
 
+  generateCompoundMatch() {
+    const subset1 = this.generateSubset();
+    const subset2 = this.generateSubset();
+    const item = this.generateItem({});
+
+    item.attributes = { ...item.attributes, ...subset1, ...subset2 };
+
+    return {
+      item,
+      subset1: { attributes: subset1 },
+      subset2: { attributes: subset2 },
+    };
+  }
+
+  generateCompoundMismatch() {
+    const subset1 = this.generateSubset();
+    const subset2 = this.generateSubset();
+    const item = this.generateItem({});
+
+    item.attributes = { ...item.attributes, ...subset1 };
+
+    return {
+      item,
+      subset1: { attributes: subset1 },
+      subset2: { attributes: subset2 },
+    };
+  }
+
   generateMismatch() {
     const item = this.generateItem({});
     const misMatchedItem = this.generateItem({});
@@ -70,12 +98,20 @@ class Test {
 
 describe('#index.ts', () => {
   describe('#general', () => {
-    it('should return compliant if given an empty check', () => {
+    it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
 
       const check = engine(item, [{}]);
 
       expect(check.result).toBe('COMPLIANT');
+    });
+
+    it('should throw if given an unknown keyword', () => {
+      const item = new Test().generateItem({});
+
+      expect(() => engine(item, [{ [faker.random.word()]: true }])).toThrow(
+        'Error: data/0 must NOT have additional properties'
+      );
     });
   });
 
@@ -114,7 +150,7 @@ describe('#index.ts', () => {
   });
 
   describe('#excludes', () => {
-    it('should return compliant if given an empty check', () => {
+    it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
 
       const check = engine(item, [{ $excludes: [] }]);
@@ -176,7 +212,7 @@ describe('#index.ts', () => {
   });
 
   describe('#if_excludes', () => {
-    it('should return compliant if given an empty check', () => {
+    it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
 
       const check = engine(item, [{ $if_excludes: [] }]);
@@ -198,6 +234,81 @@ describe('#index.ts', () => {
       const check = engine(item, [{ $if_excludes: [subset] }]);
 
       expect(check.result).toBe('SKIPPED');
+    });
+  });
+
+  describe('#shape', () => {
+    [
+      'compliant',
+      'controlProcedure',
+      'item',
+      'nonCompliant',
+      'result',
+      'skipped',
+    ].forEach(key => {
+      it(`should have a(n) ${key} attribute`, () => {
+        const item = new Test().generateItem({});
+
+        const check = engine(item, [{ $includes: [item] }]);
+
+        expect(Object.keys(check).includes(key)).toBe(true);
+      });
+    });
+
+    ['compliant', 'nonCompliant', 'skipped'].forEach(key => {
+      it(`should see ${key} as an array`, () => {
+        const item = new Test().generateItem({});
+
+        const check = engine(item, [{ $includes: [item] }]) as never;
+
+        expect(Array.isArray(check[key])).toBe(true);
+      });
+    });
+  });
+
+  describe('#multiples', () => {
+    it('should return COMPLIANT for matched compound includes', () => {
+      const data = new Test().generateCompoundMatch();
+
+      const check = engine(data.item, [
+        { $includes: [data.subset1] },
+        { $includes: [data.subset2] },
+      ]);
+
+      expect(check.result).toBe('COMPLIANT');
+    });
+
+    it('should return NON_COMPLIANT for mismatched compound includes', () => {
+      const data = new Test().generateCompoundMismatch();
+
+      const check = engine(data.item, [
+        { $includes: [data.subset1] },
+        { $includes: [data.subset2] },
+      ]);
+
+      expect(check.result).toBe('NON_COMPLIANT');
+    });
+
+    it('should return COMPLIANT for mismatched compound excludes', () => {
+      const data = new Test().generateCompoundMismatch();
+
+      const check = engine(data.item, [
+        { $excludes: [data.subset2] },
+        { $excludes: [data.subset2] },
+      ]);
+
+      expect(check.result).toBe('COMPLIANT');
+    });
+
+    it('should return NON_COMPLIANT for matched compound excludes', () => {
+      const data = new Test().generateCompoundMatch();
+
+      const check = engine(data.item, [
+        { $excludes: [data.subset1] },
+        { $excludes: [data.subset2] },
+      ]);
+
+      expect(check.result).toBe('NON_COMPLIANT');
     });
   });
 });

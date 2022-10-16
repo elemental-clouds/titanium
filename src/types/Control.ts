@@ -27,6 +27,7 @@ export interface ControlValidation {
 
 export interface FinalControlValidationResult {
   compliant: ControlValidation[];
+  controlProcedure: ControlProcedure;
   item: CommonInventoryItem;
   nonCompliant: ControlValidation[];
   result: ComplianceState;

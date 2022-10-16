@@ -58,5 +58,6 @@ export const schema: JSONSchemaType<ControlProcedure> = {
         },
       },
     },
+    additionalProperties: false,
   },
 };
