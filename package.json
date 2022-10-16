@@ -1,7 +1,7 @@
 {
   "author": "lstatro",
   "bugs": {
-    "url": "https://github.com/lstatro/titanium/issues"
+    "url": "https://github.com/elemental-clouds/hydrogen/issues"
   },
   "dependencies": {
     "@elemental-clouds/hydrogen": "^0.0.2",
