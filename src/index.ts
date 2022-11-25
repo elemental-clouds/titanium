@@ -70,7 +70,7 @@ class Engine {
   }
 
   validationProcedure() {
-    procedureLoop: for (const control of this.procedure) {
+    procedureLoop: for (const control of this.procedure.procedure) {
       /**
        * for each $keyword in the control procedure
        */

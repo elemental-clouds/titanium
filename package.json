@@ -4,7 +4,7 @@
     "url": "https://github.com/elemental-clouds/hydrogen/issues"
   },
   "dependencies": {
-    "@elemental-clouds/hydrogen": "^0.0.7",
+    "@elemental-clouds/hydrogen": "^0.0.10",
     "@types/lodash": "^4.14.186",
     "ajv": "^8.11.0",
     "lodash": "^4.17.21"
@@ -100,5 +100,5 @@
     "lint": "eslint . --ext .ts",
     "test": "jest"
   },
-  "version": "0.0.3"
+  "version": "0.0.4"
 }

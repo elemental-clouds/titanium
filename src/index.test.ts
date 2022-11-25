@@ -25,11 +25,11 @@ class Test {
   generateItem(args: {
     urn?: string;
     attributes?: { [key: string]: unknown };
-  }): CommonInventoryItem {
+  }) {
     return {
       urn: args.urn || this.generateRandomUrn(),
       attributes: args.attributes || this.generateRandomAttributes(),
-    };
+    } as CommonInventoryItem;
   }
 
   generatePartialMatch() {
@@ -94,23 +94,32 @@ class Test {
 
     return subset;
   }
+
+  static getControlProcedure(procedure: unknown) {
+    return {
+      procedure,
+      name: faker.random.word(),
+      description: faker.random.words(5),
+    } as ControlProcedure;
+  }
 }
 
 describe('#index.ts', () => {
   describe('#general', () => {
     it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{}]);
-
+      const procedure = Test.getControlProcedure([{}]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should throw if given an unknown keyword', () => {
       const item = new Test().generateItem({});
-
-      expect(() => engine(item, [{ [faker.random.word()]: true }])).toThrow(
-        'Error: data/0 must NOT have additional properties'
+      const procedure = Test.getControlProcedure([
+        { [faker.random.word()]: true },
+      ]);
+      expect(() => engine(item, procedure)).toThrow(
+        'Error: data/procedure/0 must NOT have additional properties'
       );
     });
   });
@@ -118,33 +127,33 @@ describe('#index.ts', () => {
   describe('#includes', () => {
     it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $includes: [] }]);
-
+      const procedure = Test.getControlProcedure([{ $includes: [] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return COMPLIANT if given an exact match', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $includes: [item] }]);
-
+      const procedure = Test.getControlProcedure([{ $includes: [item] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return COMPLIANT if given a partial match', () => {
       const data = new Test().generatePartialMatch();
-
-      const check = engine(data.item, [{ $includes: [data.subset] }]);
-
+      const procedure = Test.getControlProcedure([
+        { $includes: [data.subset] },
+      ]);
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return NON_COMPLIANT if given a mismatch', () => {
       const data = new Test().generateMismatch();
-
-      const check = engine(data.item, [{ $includes: [data.misMatchedItem] }]);
-
+      const procedure = Test.getControlProcedure([
+        { $includes: [data.misMatchedItem] },
+      ]);
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('NON_COMPLIANT');
     });
   });
@@ -152,25 +161,24 @@ describe('#index.ts', () => {
   describe('#excludes', () => {
     it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $excludes: [] }]);
-
+      const procedure = Test.getControlProcedure([{ $excludes: [] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return COMPLIANT if given an exact mismatch', () => {
       const { item, misMatchedItem } = new Test().generateMismatch();
-
-      const check = engine(item, [{ $excludes: [misMatchedItem] }]);
-
+      const procedure = Test.getControlProcedure([
+        { $excludes: [misMatchedItem] },
+      ]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return NON_COMPLIANT if given an partial mismatch', () => {
       const { item, subset } = new Test().generatePartialMatch();
-
-      const check = engine(item, [{ $excludes: [subset] }]);
-
+      const procedure = Test.getControlProcedure([{ $excludes: [subset] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('NON_COMPLIANT');
     });
   });
@@ -178,35 +186,33 @@ describe('#index.ts', () => {
   describe('#if_includes', () => {
     it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $if_includes: [] }]);
-
+      const procedure = Test.getControlProcedure([{ $if_includes: [] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return COMPLIANT if given an exact match', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $if_includes: [item] }]);
-
+      const procedure = Test.getControlProcedure([{ $if_includes: [item] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return COMPLIANT if given a partial match', () => {
       const data = new Test().generatePartialMatch();
-
-      const check = engine(data.item, [{ $if_includes: [data.subset] }]);
-
+      const procedure = Test.getControlProcedure([
+        { $if_includes: [data.subset] },
+      ]);
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
 
     it('should return SKIPPED if given a mismatch', () => {
       const data = new Test().generateMismatch();
-
-      const check = engine(data.item, [
+      const procedure = Test.getControlProcedure([
         { $if_includes: [data.misMatchedItem] },
       ]);
-
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('SKIPPED');
     });
   });
@@ -214,25 +220,22 @@ describe('#index.ts', () => {
   describe('#if_excludes', () => {
     it('should return COMPLIANT if given an empty check', () => {
       const item = new Test().generateItem({});
-
-      const check = engine(item, [{ $if_excludes: [] }]);
-
+      const procedure = Test.getControlProcedure([{ $if_excludes: [] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
-
     it('should return COMPLIANT if given an exact mismatch', () => {
       const { item, misMatchedItem } = new Test().generateMismatch();
-
-      const check = engine(item, [{ $if_excludes: [misMatchedItem] }]);
-
+      const procedure = Test.getControlProcedure([
+        { $if_excludes: [misMatchedItem] },
+      ]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
-
     it('should return SKIPPED if given an partial mismatch', () => {
       const { item, subset } = new Test().generatePartialMatch();
-
-      const check = engine(item, [{ $if_excludes: [subset] }]);
-
+      const procedure = Test.getControlProcedure([{ $if_excludes: [subset] }]);
+      const check = engine(item, procedure);
       expect(check.result).toBe('SKIPPED');
     });
   });
@@ -248,9 +251,8 @@ describe('#index.ts', () => {
     ].forEach(key => {
       it(`should have a(n) ${key} attribute`, () => {
         const item = new Test().generateItem({});
-
-        const check = engine(item, [{ $includes: [item] }]);
-
+        const procedure = Test.getControlProcedure([{ $includes: [item] }]);
+        const check = engine(item, procedure);
         expect(Object.keys(check).includes(key)).toBe(true);
       });
     });
@@ -258,9 +260,8 @@ describe('#index.ts', () => {
     ['compliant', 'nonCompliant', 'skipped'].forEach(key => {
       it(`should see ${key} as an array`, () => {
         const item = new Test().generateItem({});
-
-        const check = engine(item, [{ $includes: [item] }]) as never;
-
+        const procedure = Test.getControlProcedure([{ $includes: [item] }]);
+        const check = engine(item, procedure) as never;
         expect(Array.isArray(check[key])).toBe(true);
       });
     });
@@ -269,45 +270,38 @@ describe('#index.ts', () => {
   describe('#multiples', () => {
     it('should return COMPLIANT for matched compound includes', () => {
       const data = new Test().generateCompoundMatch();
-
-      const check = engine(data.item, [
+      const procedure = Test.getControlProcedure([
         { $includes: [data.subset1] },
         { $includes: [data.subset2] },
       ]);
-
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
-
     it('should return NON_COMPLIANT for mismatched compound includes', () => {
       const data = new Test().generateCompoundMismatch();
-
-      const check = engine(data.item, [
+      const procedure = Test.getControlProcedure([
         { $includes: [data.subset1] },
         { $includes: [data.subset2] },
       ]);
-
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('NON_COMPLIANT');
     });
-
     it('should return COMPLIANT for mismatched compound excludes', () => {
       const data = new Test().generateCompoundMismatch();
-
-      const check = engine(data.item, [
+      const procedure = Test.getControlProcedure([
         { $excludes: [data.subset2] },
         { $excludes: [data.subset2] },
       ]);
-
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('COMPLIANT');
     });
-
     it('should return NON_COMPLIANT for matched compound excludes', () => {
       const data = new Test().generateCompoundMatch();
-
-      const check = engine(data.item, [
+      const procedure = Test.getControlProcedure([
         { $excludes: [data.subset1] },
         { $excludes: [data.subset2] },
       ]);
-
+      const check = engine(data.item, procedure);
       expect(check.result).toBe('NON_COMPLIANT');
     });
   });
